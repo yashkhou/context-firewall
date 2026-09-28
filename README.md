@@ -34,3 +34,12 @@ python -m unittest discover -s tests -v
 ```
 
 MIT licensed.
+
+
+## v0.1.1
+
+**Tamper-aware provenance traversal.** Derived context can now name parent sources; evaluation walks the provenance graph, detects missing ancestors/cycles, and fails closed with structured violation codes.
+
+```bash
+PYTHONPATH=src python -m unittest discover -s tests -v
+```
