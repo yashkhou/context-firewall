@@ -2,10 +2,10 @@
 
 ## 0.1.1 — 2026-09-28
 
-- Tamper-aware provenance traversal.
-- Added regression coverage for the new behavior.
-- Added contributor and security guidance.
+- Added transitive provenance-parent evaluation.
+- Added fail-closed missing-parent and cycle detection with structured violations.
+- Added regression coverage and public contributor/security guidance.
 
 ## 0.1.0
 
-Initial public V1.
+Initial public release.

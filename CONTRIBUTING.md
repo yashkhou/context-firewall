@@ -1,10 +1,8 @@
-# Contributing to Context Firewall
+# Contributing
 
-Prefer small, evidence-backed changes tied to a concrete failure mode or developer workflow. Behavioral changes need regression tests.
+Keep changes small and evidence-backed. Behavioral changes should include a regression test and explain the trust-boundary failure they address.
 
 ```bash
 PYTHONPATH=src python -m unittest discover -s tests -v
-python -m compileall -q src tests
+python3 -m compileall -q src tests
 ```
-
-Prefer inspectable core logic over unnecessary dependencies.
