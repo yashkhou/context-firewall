@@ -1,9 +1,7 @@
 from __future__ import annotations
-
 from dataclasses import asdict, dataclass
 from enum import Enum
 from typing import Iterable
-
 
 class Trust(str, Enum):
     SYSTEM = "system"
@@ -11,7 +9,6 @@ class Trust(str, Enum):
     TOOL = "tool"
     RETRIEVED = "retrieved"
     UNTRUSTED = "untrusted"
-
 
 @dataclass(frozen=True)
 class Chunk:
@@ -21,7 +18,6 @@ class Chunk:
     labels: frozenset[str] = frozenset()
     parents: tuple[str, ...] = ()
 
-
 @dataclass(frozen=True)
 class SinkPolicy:
     name: str
@@ -29,16 +25,13 @@ class SinkPolicy:
     forbidden_labels: frozenset[str] = frozenset()
     require_complete_provenance: bool = True
 
-
 @dataclass(frozen=True)
 class Violation:
     source: str
     code: str
     detail: str
-
-    def as_dict(self) -> dict[str, str]:
+    def as_dict(self):
         return asdict(self)
-
 
 @dataclass(frozen=True)
 class Decision:
@@ -47,8 +40,7 @@ class Decision:
     reasons: tuple[str, ...]
     contributing_sources: tuple[str, ...]
     violations: tuple[Violation, ...] = ()
-
-    def as_dict(self) -> dict[str, object]:
+    def as_dict(self):
         return {
             "allowed": self.allowed,
             "sink": self.sink,
@@ -57,27 +49,20 @@ class Decision:
             "violations": [v.as_dict() for v in self.violations],
         }
 
-
 def evaluate(chunks: Iterable[Chunk], policy: SinkPolicy) -> Decision:
-    """Evaluate direct trust plus the complete provenance graph, failing closed."""
     chunks = tuple(chunks)
     by_source: dict[str, Chunk] = {}
     violations: dict[tuple[str, str, str], Violation] = {}
-
     def add(source: str, code: str, detail: str) -> None:
         violations[(source, code, detail)] = Violation(source, code, detail)
-
     for chunk in chunks:
         if chunk.source in by_source:
             add(chunk.source, "duplicate-source", f"duplicate provenance source {chunk.source!r}")
         by_source[chunk.source] = chunk
-
     checked: set[str] = set()
-
     def visit(source: str, stack: tuple[str, ...]) -> None:
         if source in stack:
-            cycle = " -> ".join((*stack, source))
-            add(source, "provenance-cycle", f"provenance cycle: {cycle}")
+            add(source, "provenance-cycle", "provenance cycle: " + " -> ".join((*stack, source)))
             return
         chunk = by_source.get(source)
         if chunk is None:
@@ -94,37 +79,19 @@ def evaluate(chunks: Iterable[Chunk], policy: SinkPolicy) -> Decision:
         for parent in chunk.parents:
             visit(parent, (*stack, source))
         checked.add(source)
-
     for chunk in chunks:
         visit(chunk.source, ())
-
     ordered = tuple(violations.values())
-    return Decision(
-        allowed=not ordered,
-        sink=policy.name,
-        reasons=tuple(v.detail for v in ordered),
-        contributing_sources=tuple(by_source),
-        violations=ordered,
-    )
+    return Decision(not ordered, policy.name, tuple(v.detail for v in ordered), tuple(by_source), ordered)
 
-
-def from_json(data: dict[str, object]) -> tuple[list[Chunk], SinkPolicy]:
-    rows = data["chunks"]
-    assert isinstance(rows, list)
+def from_json(data):
     chunks = [
-        Chunk(
-            str(x["text"]),
-            str(x["source"]),
-            Trust(x["trust"]),
-            frozenset(x.get("labels", [])),
-            tuple(x.get("parents", [])),
-        )
-        for x in rows
+        Chunk(x["text"], x["source"], Trust(x["trust"]), frozenset(x.get("labels", [])), tuple(x.get("parents", [])))
+        for x in data["chunks"]
     ]
     p = data["policy"]
-    assert isinstance(p, dict)
     policy = SinkPolicy(
-        str(p["name"]),
+        p["name"],
         frozenset(Trust(x) for x in p["allowed"]),
         frozenset(p.get("forbidden_labels", [])),
         bool(p.get("require_complete_provenance", True)),
