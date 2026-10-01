@@ -1,3 +1,9 @@
+> [!IMPORTANT]
+> **This project now lives in [agent-reliability-lab](https://github.com/yashkhou/agent-reliability-lab/tree/main/packages/context-firewall).** Its full history was moved there and this repository is archived.
+>
+> `pip install "git+https://github.com/yashkhou/agent-reliability-lab#subdirectory=packages/context-firewall"`
+
+
 # context-firewall
 
 Provenance-aware trust boundaries for agent context before it reaches privileged tool or system sinks.
